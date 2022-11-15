@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#FFF">
+
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="center"
+        android:text="Configuration"
+        android:textColor="#000"
+        android:textSize="20dp"
+        android:textStyle="bold"></TextView>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="250dp"
+        android:orientation="vertical">
+
+        <Switch
+            android:id="@+id/switch1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+
+            android:layout_gravity="center"
+            android:layout_marginStart="33dp"
+            android:layout_marginTop="70dp"
+            android:checked="false"
+            android:switchMinWidth="56dp"
+            android:switchPadding="20dp"
+            android:text="Enable check in / check out"
+            android:textColor="#000"
+            android:textOff="OFF"
+            android:textOn="ON" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="30dp"
+            android:layout_marginTop="105dp"
+            android:text="-----------------------------------------------------------------"></TextView>
+
+        <Switch
+            android:id="@+id/switch2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_marginStart="33dp"
+            android:layout_marginTop="130dp"
+            android:checked="false"
+            android:gravity="center"
+            android:switchMinWidth="56dp"
+            android:switchPadding="20dp"
+            android:text="Contact unique ID ON / OFF"
+            android:textColor="#000"
+            android:textOff="OFF"
+            android:textOn="ON" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="30dp"
+            android:layout_marginTop="165dp"
+            android:text="-----------------------------------------------------------------"></TextView>
+
+
+        <Switch
+            android:id="@+id/switch3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_marginStart="33dp"
+
+            android:layout_marginTop="190dp"
+            android:checked="false"
+            android:gravity="center"
+            android:switchMinWidth="56dp"
+            android:switchPadding="20dp"
+            android:text="Flash Light ON / OFF"
+            android:textColor="#000"
+            android:textOff="OFF"
+            android:textOn="ON" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="30dp"
+            android:layout_marginTop="225dp"
+            android:text="-----------------------------------------------------------------"></TextView>
+
+    </RelativeLayout>
+
+    <Button
+        android:id="@+id/btn_ok"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="center"
+        android:layout_marginTop="255dp"
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/button_bg_layout"
+        android:gravity="center"
+        android:text="SAVE"
+        android:textColor="#ffffff" />
+</RelativeLayout>

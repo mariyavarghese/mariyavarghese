@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/popup_style"
+    android:orientation="vertical"
+    android:layout_margin="40dp"
+    android:gravity="center_horizontal">
+
+    <TextView
+        android:id="@+id/tv_showImei"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="Test Pop-Up"
+        android:textColor="#000"
+        android:layout_margin="20dp"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/bt_okImei"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="20dp"
+        android:background="@drawable/button_bg_layout"
+        android:text="OK"
+        android:textColor="#FFF"
+        android:textStyle="bold" />
+</LinearLayout>
+
+
+
+

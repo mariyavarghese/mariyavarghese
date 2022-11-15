@@ -1,0 +1,42 @@
+<resources>
+    <string name="app_name">ESS Go</string>
+    <string name="login">Login</string>
+    <string name="submit">Submit</string>
+    <string name="select_event">Select Event</string>
+    <string name="select_scanType">Select Scan Type</string>
+    <string name="scan_code">Scan Code</string>
+    <string name="dummy_text">Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book</string>
+    <string name="badge_inactive">Badge Inactive</string>
+    <string name="user_name">Mr. Kevin John</string>
+    <string name="organization">Organization : Dolor Sit</string>
+    <string name="contactid">Contact ID : 1001</string>
+    <string name="badge_type">Badge Type : General</string>
+    <string name="category">Category : Lorem Ipsum</string>
+    <string name="zone">Zone</string>
+    <string name="venue">Venue</string>
+    <string name="previlege">Previlege</string>
+    <string name="three_line_text">Lorem Ipsum Dolor Sit Phasseles Elit</string>
+    <string name="network_error">Check your network connection</string>
+    <string name="loading">Loading...</string>
+    <string name="verifying">Verifying...</string>
+    <string name="barcode">Bar Code</string>
+    <string name="qrcode">QR Code</string>
+    <string name="user_status_error">You are no longer a user...</string>
+    <string name="badge_not_found">Badge Not Found...</string>
+    <string name="badge_already_verified">Badge Already Verified</string>
+    <string name="network_error_new">Network Error...</string>
+    <string name="show_IMEI">Show IMEI</string>
+    <string name="show_serial_no">Show Serial No</string>
+    <string name="logout">Logout</string>
+    <string name="device_not_registered">Device not registered</string>
+    <string name="badge_already">Badge Already Scanned!</string>
+    <string name="badge_not_collected">Badge Not Collected!</string>
+    <string name="config">Configuration</string>
+    <string name="access_denied">Access denied!</string>
+
+    <string name="tab">\u0009\u0009</string>
+    <string name="check_out">Check Out</string>
+    <string name="check_in">Check In</string>
+    <string name="Area">Area</string>
+
+</resources>

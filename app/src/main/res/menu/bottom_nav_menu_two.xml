@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_scanNext"
+        android:enabled="true"
+        android:icon="@drawable/ic_scan_next"
+        android:title="Scan Next" />
+    <item
+        android:id="@+id/menu_exitApp"
+        android:enabled="true"
+        android:icon="@drawable/ic_exit"
+        android:title="Exit" />
+</menu>
