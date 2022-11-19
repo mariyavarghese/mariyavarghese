@@ -99,6 +99,7 @@
                 android:padding="20dp">
 
                 <EditText
+                    android:visibility="gone"
                     android:id="@+id/ed_username"
                     android:layout_width="match_parent"
                     android:layout_height="80dp"

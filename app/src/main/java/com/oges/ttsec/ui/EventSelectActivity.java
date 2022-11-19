@@ -1,14 +1,14 @@
 package com.oges.ttsec.ui;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.Point;
-import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -17,7 +17,6 @@ import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
@@ -25,7 +24,6 @@ import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
@@ -48,6 +46,13 @@ import com.android.volley.RequestQueue;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.gson.JsonObject;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
+import com.kaopiz.kprogresshud.KProgressHUD;
 import com.oges.ttsec.R;
 import com.oges.ttsec.model.Event;
 import com.oges.ttsec.model.EventModel;
@@ -57,15 +62,11 @@ import com.oges.ttsec.network.CheckNetwork;
 import com.oges.ttsec.util.AppConstants;
 import com.oges.ttsec.util.DataProcessor;
 import com.oges.ttsec.util.UserStatusCallback;
-import com.google.android.material.snackbar.Snackbar;
-import com.google.gson.JsonObject;
-import com.kaopiz.kprogresshud.KProgressHUD;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -78,23 +79,23 @@ import retrofit2.Response;
 public class EventSelectActivity extends AppCompatActivity {
 
     private Spinner sp_event, sp_scanType;
-    private Button bt_submit,bt_okImei;
+    private Button bt_submit, bt_okImei;
     private ImageView iv_logout, iv_showImei;
     private TextView tv_showImei;
     private CheckNetwork checkNetwork;
     private ApiInterface apiInterface;
     private DataProcessor dataProcessor;
     private KProgressHUD hud;
-    private ArrayList<String> eventNameList = new ArrayList<>();
-    private ArrayList<String> eventIdList = new ArrayList<>();
-    private ArrayList<String> scanTypeList = new ArrayList<>();
-    private ArrayList<String> scanTypeIdList = new ArrayList<>();
+    private final ArrayList<String> eventNameList = new ArrayList<>();
+    private final ArrayList<String> eventIdList = new ArrayList<>();
+    private final ArrayList<String> scanTypeList = new ArrayList<>();
+    private final ArrayList<String> scanTypeIdList = new ArrayList<>();
     private ArrayAdapter eventAdapter;
     private ArrayAdapter scanTypeAdapter;
     private String companyId;
     private boolean userStatus;
-    private boolean bt_submitStatus = false;
-    private String userId;
+    private final boolean bt_submitStatus = false;
+    private String userId, eventId;
     private static final int REQUEST_CAMERA_PERMISSION = 201;
     private static final int REQUEST_PHONE_STATE = 101;
     String serial;
@@ -106,80 +107,84 @@ public class EventSelectActivity extends AppCompatActivity {
         apiInterface = ApiService.getClient().create(ApiInterface.class);
         checkNetwork = new CheckNetwork(EventSelectActivity.this);
         dataProcessor = new DataProcessor(EventSelectActivity.this);
-        userId = dataProcessor.getUserId(AppConstants.USERID);
-        companyId = dataProcessor.getCompanyId(AppConstants.COMPANYID);
+        userId = DataProcessor.getUserId(AppConstants.USERID);
+        eventId = DataProcessor.getEventId(AppConstants.EVENTID);
+        companyId = DataProcessor.getUserId(AppConstants.USERID);
         Log.d("companyId", " " + companyId);
+        Log.d("userId", " " + userId);
+        Log.d("eventid", " " + eventId);
         setContentView(R.layout.activity_event_select);
 
         initViews();
         if (checkNetwork.isNetworkConnected(EventSelectActivity.this)) {
 
             fillEventList();
+//            getDetails();
             // fillScanTypeList();
 //            checkImeiPermission();
             serial = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
-            dataProcessor.setImeIId(AppConstants.IMEIID, serial);
+            DataProcessor.setImeIId(AppConstants.IMEIID, serial);
 
             bt_submit.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
 
                     showProgress(getString(R.string.loading));
-                    checkUserStatus(userId, new UserStatusCallback() {
-                        @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-                        @Override
-                        public void onSuccess(boolean value) {
-                            if (value) {
-                                String eventId = eventIdList.get(sp_event.getSelectedItemPosition());
-                                dataProcessor.setEventId(AppConstants.EVENTID, eventId);
-                                //String scanTypeId = scanTypeIdList.get(sp_scanType.getSelectedItemPosition());
-                                Log.d("EVENTID", " " + eventId);
-                                if (eventId.contentEquals("-1")) {
-                                    hud.dismiss();
-                                    showSnackbar("Select Event");
-                                } else {
+////                    checkUserStatus(userId, new UserStatusCallback() {
+//                        @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+//                        @Override
+//                        public void onSuccess(boolean value) {
+//                            if (value) {
+//                                String eventId = eventIdList.get(sp_event.getSelectedItemPosition());
+//                                dataProcessor.setEventId(AppConstants.EVENTID, eventId);
+//                                //String scanTypeId = scanTypeIdList.get(sp_scanType.getSelectedItemPosition());
+//                                Log.d("EVENTID", " " + eventId);
+                    if (eventId.contentEquals("-1")) {
+                        hud.dismiss();
+                        showSnackbar("Select Event");
+                    } else {
 
-                                    Intent intent = new Intent(EventSelectActivity.this, ScannedBarcodeActivity.class);
-                                    intent.putExtra("EVENTID", eventId);
-                                    hud.dismiss();
-                                    if (checkCameraPermission()) {
-                                        startActivity(intent);
-                                    }
-                                }
-
-//                                if (scanTypeId.contentEquals("-1")) {
-//                                    showSnackbar("Select Scan Type");
-//                                }
-//                                if (scanTypeId.contentEquals("1")) {
+                        Intent intent = new Intent(EventSelectActivity.this, ScannedBarcodeActivity.class);
+                        intent.putExtra("EVENTID", eventId);
+                        hud.dismiss();
+                        if (checkCameraPermission()) {
+                            startActivity(intent);
+                        }
+                    }
 //
-//                                    Intent intent = new Intent(EventSelectActivity.this, ScannedBarcodeActivity.class);
-//                                    intent.putExtra("EVENTID", eventId);
-//                                    intent.putExtra("SCANID", scanTypeId);
-//                                    checkCameraPermission();
-//                                    //startActivity(intent);
-//                                } else if (scanTypeId.contentEquals("2")) {
-//                                    Intent intent = new Intent(EventSelectActivity.this, ScannedBarcodeActivity.class);
-//                                    intent.putExtra("EVENTID", eventId);
-//                                    intent.putExtra("SCANID", scanTypeId);
-//                                    checkCameraPermission();
-//                                    //startActivity(intent);
-//                                }
-                            } else {
-                                dataProcessor.clear();
-                                showSnackbar(getString(R.string.user_status_error));
-                                Intent logoutIntent = new Intent(EventSelectActivity.this, LoginActivity.class);
-                                //logoutIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                startActivity(logoutIntent);
-                                finish();
-                            }
-                        }
-
-                        @Override
-                        public void onError() {
-                            hud.dismiss();
-                            showSnackbar(getString(R.string.network_error));
-                        }
-                    });
+////                                if (scanTypeId.contentEquals("-1")) {
+////                                    showSnackbar("Select Scan Type");
+////                                }
+////                                if (scanTypeId.contentEquals("1")) {
+////
+////                                    Intent intent = new Intent(EventSelectActivity.this, ScannedBarcodeActivity.class);
+////                                    intent.putExtra("EVENTID", eventId);
+////                                    intent.putExtra("SCANID", scanTypeId);
+////                                    checkCameraPermission();
+////                                    //startActivity(intent);
+////                                } else if (scanTypeId.contentEquals("2")) {
+////                                    Intent intent = new Intent(EventSelectActivity.this, ScannedBarcodeActivity.class);
+////                                    intent.putExtra("EVENTID", eventId);
+////                                    intent.putExtra("SCANID", scanTypeId);
+////                                    checkCameraPermission();
+////                                    //startActivity(intent);
+////                                }
+//                            } else {
+//                                dataProcessor.clear();
+//                                showSnackbar(getString(R.string.user_status_error));
+//                                Intent logoutIntent = new Intent(EventSelectActivity.this, LoginActivity.class);
+//                                //logoutIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+//                                startActivity(logoutIntent);
+//                                finish();
+//                            }
+//                        }
+//
+//                        @Override
+//                        public void onError() {
+//                            hud.dismiss();
+//                            showSnackbar(getString(R.string.network_error));
+//                        }
+//                    });
                 }
             });
 
@@ -214,7 +219,7 @@ public class EventSelectActivity extends AppCompatActivity {
                             builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int id) {
                                     dialog.dismiss();
-                                    dataProcessor.clear();
+                                    DataProcessor.clear();
                                     Intent logoutIntent = new Intent(EventSelectActivity.this, LoginActivity.class);
                                     startActivity(logoutIntent);
                                 }
@@ -288,11 +293,11 @@ public class EventSelectActivity extends AppCompatActivity {
 
     public void getDetails() {
         final RequestQueue requestQueue = Volley.newRequestQueue(EventSelectActivity.this);
-        String url = "http://192.168.10.57:8081/ttseceventservices/public/api/event_listing";
+        String url = "https://sandbox.ttsec-ess.com/api/event_listing";
         StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new com.android.volley.Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                Log.e("response", response.toString());
+                Log.e("response", response);
                 try {
                     JSONObject jsonObject = new JSONObject(response);
                     JSONArray jsonArray = jsonObject.getJSONArray("event_listing");
@@ -301,6 +306,12 @@ public class EventSelectActivity extends AppCompatActivity {
                         JSONObject jsonObject1 = jsonArray.getJSONObject(i);
                         eventModel.setId(jsonObject1.getString("id"));
                         eventModel.setEventName(jsonObject1.getString("evnt_name"));
+                        eventAdapter.add(eventModel);
+
+
+                        eventAdapter = new ArrayAdapter(EventSelectActivity.this, R.layout.spinner_item, eventNameList);
+                        eventAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                        sp_event.setAdapter(eventAdapter);
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -316,7 +327,9 @@ public class EventSelectActivity extends AppCompatActivity {
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
                 Map<String, String> params = new HashMap<>();
-                params.put("company_id", "1");
+                params.put("company_id", userId);
+                params.put("event_id", eventId);
+                Log.e("params2", params.toString());
                 return params;
             }
         };
@@ -343,7 +356,7 @@ public class EventSelectActivity extends AppCompatActivity {
         eventIdList.add("-1");
         eventNameList.add(getString(R.string.select_event));
 
-        Call<EventModel> call = apiInterface.getEventList(userId);
+        Call<EventModel> call = apiInterface.getEventList(userId, eventId);
         call.enqueue(new Callback<EventModel>() {
             @Override
             public void onResponse(Call<EventModel> call, Response<EventModel> response) {
@@ -413,11 +426,33 @@ public class EventSelectActivity extends AppCompatActivity {
         pw.setWidth(width - 50);
         pw.setHeight(LinearLayout.LayoutParams.WRAP_CONTENT);
         pw.showAtLocation(findViewById(R.id.layoutTemp), Gravity.CENTER, 0, 0);
-       // Toast.makeText(this, "IMEI:"+dataProcessor.getImeIId(AppConstants.IMEIID), Toast.LENGTH_SHORT).show();
-        String imeIId = dataProcessor.getImeIId(AppConstants.IMEIID);
-        ((TextView)pw.getContentView().findViewById(R.id.tv_showImei)).setText("Device Serial No: "+imeIId);
+        // Toast.makeText(this, "IMEI:"+dataProcessor.getImeIId(AppConstants.IMEIID), Toast.LENGTH_SHORT).show();
+        String imeIId = DataProcessor.getImeIId(AppConstants.IMEIID);
+        ((TextView) pw.getContentView().findViewById(R.id.tv_showImei)).setText("Device Serial No: " + imeIId);
 //        ((TextView)pw.getContentView().findViewById(R.id.tv_showImei)).setText("IMEI No: "+imeIId);
-        bt_okImei=(Button) pw.getContentView().findViewById(R.id.bt_okImei);
+
+
+        QRCodeWriter writer = new QRCodeWriter();
+        try {
+            BitMatrix bitMatrix = writer.encode(imeIId, BarcodeFormat.QR_CODE, 1012, 912);
+            int width1 = bitMatrix.getWidth();
+            int height1 = bitMatrix.getHeight();
+            Bitmap bmp = Bitmap.createBitmap(width1, height1, Bitmap.Config.RGB_565);
+            for (int x = 0; x < width1; x++) {
+                for (int y = 0; y < height1; y++) {
+                    bmp.setPixel(x, y, bitMatrix.get(x, y) ? Color.BLACK : Color.WHITE);
+                }
+            }
+            ((ImageView) pw.getContentView().findViewById(R.id.idIVQrcode)).setImageBitmap(bmp);
+            Log.e("imeimgbitmap", String.valueOf(bmp));
+//            ((ImageView) findViewById(R.id.img_result_qr)).setImageBitmap(bmp);
+
+        } catch (WriterException e) {
+            e.printStackTrace();
+        }
+
+
+        bt_okImei = pw.getContentView().findViewById(R.id.bt_okImei);
         bt_okImei.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -447,7 +482,7 @@ public class EventSelectActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+                                           String[] permissions, int[] grantResults) {
         switch (requestCode) {
             case REQUEST_CAMERA_PERMISSION: {
                 // If request is cancelled, the result arrays are empty.
@@ -498,8 +533,8 @@ public class EventSelectActivity extends AppCompatActivity {
                     serial = "-1";
                 }
 //                dataProcessor.setImeIId(AppConstants.IMEIID, deviceImei);
-                dataProcessor.setImeIId(AppConstants.IMEIID, serial);
-                Log.d("imei@@@",": "+serial);
+                DataProcessor.setImeIId(AppConstants.IMEIID, serial);
+                Log.d("imei@@@", ": " + serial);
                 return;
             }
         }
@@ -518,29 +553,17 @@ public class EventSelectActivity extends AppCompatActivity {
         window.setLayout(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         dialog.setCancelable(false);
 
-        Switch sw = (Switch) dialog.findViewById(R.id.switch1);
-        Switch sw1 = (Switch) dialog.findViewById(R.id.switch2);
-        Switch sw2 = (Switch) dialog.findViewById(R.id.switch3);
-        Button btn_ok = (Button) dialog.findViewById(R.id.btn_ok);
+        Switch sw = dialog.findViewById(R.id.switch1);
+        Switch sw1 = dialog.findViewById(R.id.switch2);
+        Switch sw2 = dialog.findViewById(R.id.switch3);
+        Button btn_ok = dialog.findViewById(R.id.btn_ok);
 
-        if(dataProcessor.getConfigStatus("CONFIG_STATUS").equals("1")){
-            sw.setChecked(true);
-        }else {
-            sw.setChecked(false);
-        }
+        sw.setChecked(DataProcessor.getConfigStatus("CONFIG_STATUS").equals("1"));
 
 
-        if(dataProcessor.getContactStatus("CONTACT_STATUS").equals("1")){
-            sw1.setChecked(true);
-        }else {
-            sw1.setChecked(false);
-        }
+        sw1.setChecked(DataProcessor.getContactStatus("CONTACT_STATUS").equals("1"));
 
-        if(dataProcessor.getflashCode("FLASH").equals("1")){
-            sw2.setChecked(true);
-        }else {
-            sw2.setChecked(false);
-        }
+        sw2.setChecked(DataProcessor.getflashCode("FLASH").equals("1"));
 
 
 
@@ -548,10 +571,10 @@ public class EventSelectActivity extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     // The toggle is enabled
-                    dataProcessor.setConfigStatus("CONFIG_STATUS","1");
+                    DataProcessor.setConfigStatus("CONFIG_STATUS", "1");
                 } else {
                     // The toggle is disabled
-                    dataProcessor.setConfigStatus("CONFIG_STATUS","0");
+                    DataProcessor.setConfigStatus("CONFIG_STATUS", "0");
                 }
             }
         });
@@ -561,10 +584,10 @@ public class EventSelectActivity extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
                 if (isChecked) {
                     // The toggle is enabled
-                    dataProcessor.setContactStatus("CONTACT_STATUS","1");
+                    DataProcessor.setContactStatus("CONTACT_STATUS", "1");
                 } else {
                     // The toggle is disabled
-                    dataProcessor.setContactStatus("CONTACT_STATUS","0");
+                    DataProcessor.setContactStatus("CONTACT_STATUS", "0");
                 }
             }
         });
@@ -574,10 +597,10 @@ public class EventSelectActivity extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
                 if (isChecked) {
                     // The toggle is enabled
-                    dataProcessor.setflashCode("FLASH","1");
+                    DataProcessor.setflashCode("FLASH", "1");
                 } else {
                     // The toggle is disabled
-                    dataProcessor.setflashCode("FLASH","0");
+                    DataProcessor.setflashCode("FLASH", "0");
                 }
             }
         });

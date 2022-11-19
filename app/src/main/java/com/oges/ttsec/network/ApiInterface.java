@@ -1,10 +1,11 @@
+
 package com.oges.ttsec.network;
 
 
+import com.google.gson.JsonObject;
 import com.oges.ttsec.model.ContactModel;
 import com.oges.ttsec.model.EventModel;
 import com.oges.ttsec.model.LoginModel;
-import com.google.gson.JsonObject;
 
 import retrofit2.Call;
 import retrofit2.http.Field;
@@ -22,7 +23,9 @@ public interface ApiInterface {
 
     @FormUrlEncoded
     @POST("event_listing")
-    Call<EventModel> getEventList(@Field("company_id") String companyId);
+    Call<EventModel> getEventList(@Field("company_id") String companyId,
+                                  @Field("event_id") String eventId);
+
 
     @FormUrlEncoded
     @POST("contact_listing")
@@ -60,6 +63,7 @@ public interface ApiInterface {
                                      @Field("user_unique_id") String userUniqueId,
                                      @Field("imei_number") String deviceImei,
                                      @Field("verification_status") String verification_status);
+
 
 }
 
