@@ -15,6 +15,13 @@ public class LoginModel {
     @Expose
     @SerializedName("login_status")
     private String login_status;
+    @Expose
+    @SerializedName("company_status")
+    private String company_status;
+
+    @Expose
+    @SerializedName("event_id")
+    private int event_id;
 
     public Company_details getCompany_details() {
         return company_details;
@@ -32,6 +39,15 @@ public class LoginModel {
         this.user_id = user_id;
     }
 
+
+    public int getEvent_id() {
+        return event_id;
+    }
+
+    public void setEvent_id(int event_id) {
+        this.event_id = event_id;
+    }
+
     public String getLogin_status() {
         return login_status;
     }
@@ -39,6 +55,16 @@ public class LoginModel {
     public void setLogin_status(String login_status) {
         this.login_status = login_status;
     }
+
+
+    public String getCompany_status() {
+        return company_status;
+    }
+
+    public void setCompany_status(String company_status) {
+        this.company_status = company_status;
+    }
+
 
     public static class Company_details {
         @Expose

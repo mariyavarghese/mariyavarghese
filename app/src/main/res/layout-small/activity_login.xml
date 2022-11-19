@@ -94,6 +94,7 @@
                 android:padding="7.5dp">
 
                 <EditText
+                    android:visibility="gone"
                     android:id="@+id/ed_username"
                     android:layout_width="match_parent"
                     android:layout_height="30dp"
